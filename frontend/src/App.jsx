@@ -9,6 +9,7 @@ import UserDashboard from './pages/UserDashboard'
 import MyReservations from './pages/MyReservations'
 import AdminDashboard from './pages/AdminDashboard'
 import ReserveEquipment from './pages/ReserveEquipment'
+import Experiments from './pages/Experiments'
 
 /** Redirect root "/" based on auth state + role */
 function HomeRedirect() {
@@ -42,6 +43,9 @@ export default function App() {
               } />
               <Route path="/reserve/:equipmentId" element={
                 <ProtectedRoute><ReserveEquipment /></ProtectedRoute>
+              } />
+              <Route path="/experiments" element={
+                <ProtectedRoute><Experiments /></ProtectedRoute>
               } />
 
               {/* Authenticated — Admin only */}

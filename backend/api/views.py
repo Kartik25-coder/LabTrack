@@ -1,17 +1,19 @@
 from rest_framework import generics, viewsets, status, permissions
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.utils import timezone
 
-from .models import CustomUser, Equipment, Reservation
+from .models import CustomUser, Equipment, Reservation, Experiment
 from .serializers import (
     SignupSerializer,
     UserSerializer,
     EquipmentSerializer,
     ReservationSerializer,
+    ExperimentSerializer,
 )
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import IsAdmin, IsAdminOrReadOnly, ExperimentPermission
 
 
 # ─────────────────────────────────────────────
@@ -75,6 +77,24 @@ class EquipmentViewSet(viewsets.ModelViewSet):
         equipment.status = new_status
         equipment.save(update_fields=['status', 'updated_at'])
         return Response(EquipmentSerializer(equipment).data)
+
+
+# ─────────────────────────────────────────────
+#  Experiment Views
+# ─────────────────────────────────────────────
+
+class ExperimentViewSet(viewsets.ModelViewSet):
+    """
+    GET    /api/experiments/          — list (all authenticated)
+    POST   /api/experiments/          — create (admin only)
+    GET    /api/experiments/{id}/     — retrieve (all authenticated)
+    PUT    /api/experiments/{id}/     — update (admin only)
+    DELETE /api/experiments/{id}/     — delete (admin only)
+    """
+    queryset = Experiment.objects.all().prefetch_related('equipment_used')
+    serializer_class = ExperimentSerializer
+    permission_classes = [ExperimentPermission]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
 
 # ─────────────────────────────────────────────

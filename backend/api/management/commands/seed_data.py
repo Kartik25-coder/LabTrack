@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
 
-from api.models import CustomUser, Equipment, Reservation
+from api.models import CustomUser, Equipment, Reservation, Experiment
 
 
 class Command(BaseCommand):
@@ -122,6 +122,86 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('✔ Created sample reservations for testuser.'))
         else:
             self.stdout.write('  Sample reservations already exist, skipping.')
+
+        # ── Experiments ────────────────────────────────────────
+        experiment_data = [
+            {
+                'title': 'Application-Specific Cycling of Automotive-Grade Cells',
+                'outcome': 'Completed cycling showed measurable internal-resistance growth under the automotive duty profile, with degradation concentrated in the high-temperature cycles.',
+                'category': 'Battery Cycling',
+                'lead_researcher': 'Dr. M. Fischer',
+                'status': 'completed',
+                'start_date': now.date() - timedelta(days=120),
+                'end_date': now.date() - timedelta(days=30),
+                'description': (
+                    'Cells cycled under charge/discharge profiles mimicking real automotive duty '
+                    'cycles at controlled temperatures, paired with EIS (Electrochemical Impedance '
+                    'Spectroscopy) inspections to track internal resistance changes over the test period.'
+                ),
+            },
+            {
+                'title': 'Second-Life Capacity Assessment — Retired E-Bike Packs',
+                'outcome': 'Most candidate packs retained sufficient usable capacity for lower-demand second-life applications after screening; weak cells were excluded from redeployment.',
+                'category': 'Battery Cycling',
+                'lead_researcher': 'Dr. L. Meier',
+                'status': 'completed',
+                'start_date': now.date() - timedelta(days=90),
+                'end_date': now.date() - timedelta(days=45),
+                'description': (
+                    'Fast measurement cycling on used e-bike battery packs to quickly determine '
+                    'remaining usable capacity, identifying cells suitable for redeployment in '
+                    'less demanding second-life applications.'
+                ),
+            },
+            {
+                'title': 'ORP-EIS Diagnostic Monitoring on Sensorized Test Cells',
+                'outcome': 'Ongoing monitoring is being used to correlate pressure, strain, ultrasound, and impedance changes as early indicators of degradation.',
+                'category': 'Battery Diagnostics',
+                'lead_researcher': 'Dr. A. Rossi',
+                'status': 'ongoing',
+                'start_date': now.date() - timedelta(days=25),
+                'end_date': None,
+                'description': (
+                    'Long-term cycling of cells fitted with embedded pressure, strain, and ultrasound '
+                    'sensors, using Odd Random Phase EIS (ORP-EIS) to detect early degradation signs '
+                    'before they surface as measurable capacity loss.'
+                ),
+            },
+            {
+                'title': 'Thin-Film Lithium-Metal Anode Fabrication Trials',
+                'outcome': 'Initial fabrication runs produced testable thin-film anodes; cycling results are still being collected and compared across deposition conditions.',
+                'category': 'Materials Research',
+                'lead_researcher': 'Dr. S. Keller',
+                'status': 'ongoing',
+                'start_date': now.date() - timedelta(days=10),
+                'end_date': None,
+                'description': (
+                    'Thermal evaporation deposition of lithium-metal anodes onto copper current '
+                    'collectors under dry-room conditions, followed by assembly into pouch cells '
+                    'for early-stage cycling evaluation.'
+                ),
+            },
+        ]
+
+        equipment_links = {
+            'Application-Specific Cycling of Automotive-Grade Cells': [created_equipment[0], created_equipment[2]],
+            'Second-Life Capacity Assessment — Retired E-Bike Packs': [created_equipment[0]],
+            'ORP-EIS Diagnostic Monitoring on Sensorized Test Cells': [created_equipment[2], created_equipment[3]],
+            'Thin-Film Lithium-Metal Anode Fabrication Trials': [created_equipment[1]],
+        }
+
+        for exp_data in experiment_data:
+            exp, created = Experiment.objects.get_or_create(
+                title=exp_data['title'],
+                defaults=exp_data,
+            )
+            exp.equipment_used.set(equipment_links.get(exp.title, []))
+            if not exp.outcome and exp_data.get('outcome'):
+                exp.outcome = exp_data['outcome']
+                exp.save(update_fields=['outcome', 'updated_at'])
+            status_icon = '✔' if created else '·'
+            verb = 'Created' if created else 'Exists '
+            self.stdout.write(self.style.SUCCESS(f'{status_icon} {verb} experiment: {exp.title}'))
 
         self.stdout.write(self.style.MIGRATE_HEADING('\n✅  Seeding complete!\n'))
         self.stdout.write('  Admin credentials :  admin     /  Admin@123')

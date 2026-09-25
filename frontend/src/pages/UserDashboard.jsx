@@ -36,9 +36,9 @@ export default function UserDashboard() {
 
   const stats = [
     { label: 'Total',        count: equipment.length,                                       color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-    { label: 'Available',    count: equipment.filter(e => e.status === 'available').length,  color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'In Use',       count: equipment.filter(e => e.status === 'in_use').length,     color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
-    { label: 'Maintenance',  count: equipment.filter(e => e.status === 'maintenance').length, color: 'text-red-400',    bg: 'bg-red-500/10'     },
+    { label: 'Available',    count: equipment.filter(e => e.status === 'available').length,  color: 'text-blue-400', bg: 'bg-slate-800' },
+    { label: 'In Use',       count: equipment.filter(e => e.status === 'in_use').length,     color: 'text-blue-400',   bg: 'bg-slate-800'   },
+    { label: 'Maintenance',  count: equipment.filter(e => e.status === 'maintenance').length, color: 'text-slate-500',    bg: 'bg-slate-800'     },
   ]
 
   return (
@@ -155,8 +155,8 @@ function EquipmentCard({ equipment: eq }) {
         <div
           className={`w-full text-center text-sm font-medium py-2.5 rounded-lg cursor-not-allowed ${
             eq.status === 'maintenance'
-              ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              ? 'bg-slate-800 text-slate-500 border border-red-500/20'
+              : 'bg-slate-800 text-blue-400 border border-blue-500/20'
           }`}
         >
           {eq.status === 'maintenance' ? '🔧 Under Maintenance' : '⏱ Currently In Use'}

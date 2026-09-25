@@ -49,9 +49,9 @@ export default function Signup() {
   if (success) {
     return (
       <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
-        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-10 text-center max-w-sm">
-          <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-slate-900 border border-blue-500/20 rounded-2xl p-10 text-center max-w-sm">
+          <div className="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -90,7 +90,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="signup-username" className="form-label">Username <span className="text-red-400">*</span></label>
+              <label htmlFor="signup-username" className="form-label">Username <span className="text-slate-500">*</span></label>
               <input id="signup-username" type="text" value={form.username}
                 onChange={set('username')} required autoComplete="username"
                 className="form-input" placeholder="Choose a username" />
@@ -103,7 +103,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="signup-password" className="form-label">Password <span className="text-red-400">*</span></label>
+              <label htmlFor="signup-password" className="form-label">Password <span className="text-slate-500">*</span></label>
               <input id="signup-password" type="password" value={form.password}
                 onChange={set('password')} required autoComplete="new-password"
                 className="form-input" placeholder="Minimum 8 characters" />

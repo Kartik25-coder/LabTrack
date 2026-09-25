@@ -122,7 +122,7 @@ export default function Login() {
                 onClick={() => fillDemo('user')}
                 className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg p-2.5 text-center transition-colors"
               >
-                <p className="text-xs font-semibold text-emerald-400">Lab User</p>
+                <p className="text-xs font-semibold text-blue-400">Lab User</p>
                 <p className="text-xs text-slate-400 mt-0.5">testuser / User@123</p>
               </button>
             </div>

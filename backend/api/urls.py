@@ -5,6 +5,7 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'equipment', views.EquipmentViewSet, basename='equipment')
+router.register(r'experiments', views.ExperimentViewSet, basename='experiment')
 
 urlpatterns = [
     # ── Auth ──────────────────────────────────────────────

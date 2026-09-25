@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import api from '../api/axios'
 import StatusBadge from '../components/StatusBadge'
+import ExperimentForm from '../components/ExperimentForm'
 
 const EMPTY_EQ = { name: '', category: '', description: '', status: 'available' }
 
@@ -13,6 +14,7 @@ const fmt = (dt) =>
 export default function AdminDashboard() {
   const [equipment, setEquipment]     = useState([])
   const [reservations, setReservations] = useState([])
+  const [experiments, setExperiments] = useState([])
   const [loading, setLoading]         = useState(true)
   const [activeTab, setActiveTab]     = useState('equipment')
 
@@ -23,15 +25,23 @@ export default function AdminDashboard() {
   const [eqError, setEqError]       = useState('')
   const [eqSaving, setEqSaving]     = useState(false)
 
+  // Experiment modal state
+  const [showExperimentModal, setShowExperimentModal] = useState(false)
+  const [editingExperiment, setEditingExperiment] = useState(null)
+  const [experimentError, setExperimentError] = useState('')
+  const [experimentSaving, setExperimentSaving] = useState(false)
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [eqRes, resRes] = await Promise.all([
+      const [eqRes, resRes, expRes] = await Promise.all([
         api.get('/equipment/'),
         api.get('/reservations/'),
+        api.get('/experiments/'),
       ])
       setEquipment(eqRes.data)
       setReservations(resRes.data)
+      setExperiments(expRes.data)
     } catch (err) {
       console.error('Failed to fetch data:', err)
     } finally {
@@ -106,12 +116,62 @@ export default function AdminDashboard() {
     }
   }
 
+  // ── Experiment helpers ────────────────────────────────────────────────
+  const openAddExperiment = () => {
+    setEditingExperiment(null)
+    setExperimentError('')
+    setShowExperimentModal(true)
+  }
+
+  const openEditExperiment = (experiment) => {
+    setEditingExperiment(experiment)
+    setExperimentError('')
+    setShowExperimentModal(true)
+  }
+
+  const closeExperimentModal = () => {
+    setShowExperimentModal(false)
+    setEditingExperiment(null)
+    setExperimentError('')
+  }
+
+  const handleExperimentSave = async (formData) => {
+    setExperimentError('')
+    setExperimentSaving(true)
+    try {
+      const res = editingExperiment
+        ? await api.put(`/experiments/${editingExperiment.id}/`, formData)
+        : await api.post('/experiments/', formData)
+      setExperiments(prev => editingExperiment
+        ? prev.map(item => item.id === res.data.id ? res.data : item)
+        : [res.data, ...prev]
+      )
+      closeExperimentModal()
+    } catch (err) {
+      const data = err.response?.data
+      setExperimentError(data ? Object.values(data).flat().join(' ') : 'Save failed. Please try again.')
+    } finally {
+      setExperimentSaving(false)
+    }
+  }
+
+  const handleExperimentDelete = async (id, title) => {
+    if (!window.confirm(`Delete experiment "${title}"? This cannot be undone.`)) return
+    try {
+      await api.delete(`/experiments/${id}/`)
+      setExperiments(prev => prev.filter(item => item.id !== id))
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete experiment.')
+    }
+  }
+
   // ── Summary stats ─────────────────────────────────────────────────────
   const stats = [
     { label: 'Equipment',    value: equipment.length,                                       color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-    { label: 'Available',    value: equipment.filter(e => e.status === 'available').length,  color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'In Use',       value: equipment.filter(e => e.status === 'in_use').length,     color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
-    { label: 'Reservations', value: reservations.length,                                     color: 'text-purple-400',  bg: 'bg-purple-500/10'  },
+    { label: 'Available',    value: equipment.filter(e => e.status === 'available').length,  color: 'text-blue-400', bg: 'bg-slate-800' },
+    { label: 'In Use',       value: equipment.filter(e => e.status === 'in_use').length,     color: 'text-blue-400',   bg: 'bg-slate-800'   },
+    { label: 'Reservations', value: reservations.length,                                     color: 'text-slate-500',  bg: 'bg-slate-800'  },
+    { label: 'Experiments',  value: experiments.length,                                      color: 'text-orange-400', bg: 'bg-orange-500/10' },
   ]
 
   return (
@@ -132,7 +192,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
         {stats.map(({ label, value, color, bg }) => (
           <div key={label} className={`card p-5 ${bg}`}>
             <p className={`text-3xl font-bold ${color}`}>{value}</p>
@@ -146,6 +206,7 @@ export default function AdminDashboard() {
         {[
           { key: 'equipment', label: '🔬 Equipment' },
           { key: 'reservations', label: '📅 Reservations' },
+          { key: 'experiments', label: '◈ Experiments' },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -174,17 +235,52 @@ export default function AdminDashboard() {
           onDelete={handleDelete}
           onStatusChange={handleStatusChange}
         />
-      ) : (
+      ) : activeTab === 'reservations' ? (
         <ReservationsTab
           reservations={reservations}
           onCancel={handleCancelReservation}
         />
+      ) : (
+        <AdminExperimentsTab
+          experiments={experiments}
+          equipment={equipment}
+          onAdd={openAddExperiment}
+          onEdit={openEditExperiment}
+          onDelete={handleExperimentDelete}
+        />
+      )}
+
+      {/* ── Experiment Modal ─────────────────────────────────────────── */}
+      {showExperimentModal && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+          onClick={(e) => { if (e.target === e.currentTarget) closeExperimentModal() }}
+        >
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-7 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="lab-kicker text-orange-400 mb-1">Admin / Research Registry</p>
+                <h2 className="text-lg font-bold text-white">{editingExperiment ? 'Edit Experiment' : 'Add Experiment'}</h2>
+              </div>
+              <button onClick={closeExperimentModal} className="text-slate-500 hover:text-white transition-colors text-xl leading-none">×</button>
+            </div>
+            <ExperimentForm
+              equipment={equipment}
+              initial={editingExperiment}
+              onSubmit={handleExperimentSave}
+              onCancel={closeExperimentModal}
+              saving={experimentSaving}
+              error={experimentError}
+              adminMode
+            />
+          </div>
+        </div>
       )}
 
       {/* ── Equipment Modal ───────────────────────────────────────────── */}
       {showModal && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal() }}
         >
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-7 w-full max-w-md shadow-2xl">
@@ -200,7 +296,7 @@ export default function AdminDashboard() {
 
             <form onSubmit={handleEqSave} className="space-y-4">
               <div>
-                <label htmlFor="eq-name" className="form-label">Name <span className="text-red-400">*</span></label>
+                <label htmlFor="eq-name" className="form-label">Name <span className="text-slate-500">*</span></label>
                 <input
                   id="eq-name"
                   type="text"
@@ -212,7 +308,7 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label htmlFor="eq-category" className="form-label">Category <span className="text-red-400">*</span></label>
+                <label htmlFor="eq-category" className="form-label">Category <span className="text-slate-500">*</span></label>
                 <input
                   id="eq-category"
                   type="text"
@@ -337,14 +433,14 @@ function EquipmentTab({ equipment, onAdd, onEdit, onDelete, onStatusChange }) {
                         <button
                           id={`edit-eq-${eq.id}`}
                           onClick={() => onEdit(eq)}
-                          className="text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded border border-blue-400/25 hover:bg-blue-400/10 transition-colors"
+                          className="text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded border border-blue-400/25 hover:bg-blue-500/10 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           id={`delete-eq-${eq.id}`}
                           onClick={() => onDelete(eq.id, eq.name)}
-                          className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded border border-red-400/25 hover:bg-red-400/10 transition-colors"
+                          className="text-slate-500 hover:text-slate-500 text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-red-400/10 transition-colors"
                         >
                           Delete
                         </button>
@@ -440,7 +536,7 @@ function ReservationsTab({ reservations, onCancel }) {
                         <button
                           id={`admin-cancel-${r.id}`}
                           onClick={() => onCancel(r.id)}
-                          className="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded border border-red-400/25 hover:bg-red-400/10 transition-colors"
+                          className="text-slate-500 hover:text-slate-500 text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-red-400/10 transition-colors"
                         >
                           Cancel
                         </button>
@@ -453,6 +549,71 @@ function ReservationsTab({ reservations, onCancel }) {
           </table>
         </div>
       </div>
+    </div>
+  )
+}
+
+
+// ── Experiments tab ───────────────────────────────────────────────────────
+
+function AdminExperimentsTab({ experiments, equipment, onAdd, onEdit, onDelete }) {
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+
+  const filtered = experiments.filter(e => {
+    const matchesStatus = statusFilter === 'all' || e.status === statusFilter
+    const q = search.toLowerCase().trim()
+    const matchesSearch = !q ||
+      e.title?.toLowerCase().includes(q) ||
+      e.category?.toLowerCase().includes(q) ||
+      e.lead_researcher?.toLowerCase().includes(q)
+    return matchesStatus && matchesSearch
+  })
+
+  const equipmentById = Object.fromEntries(equipment.map(eq => [eq.id, eq]))
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 className="text-base font-semibold text-white">Experiment Registry</h2>
+          <p className="text-xs text-slate-500 mt-1">Full administrative authority over research records.</p>
+        </div>
+        <button id="add-experiment-btn" onClick={onAdd} className="btn-primary">+ Add Experiment</button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+        <input id="experiment-admin-search" type="text" placeholder="Search title, category or researcher…" value={search} onChange={e => setSearch(e.target.value)} className="form-input text-xs py-2 flex-1" />
+        <select id="experiment-status-filter" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="form-input text-xs py-2 sm:w-40">
+          <option value="all">All Status</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[850px]">
+            <thead><tr className="bg-slate-800/60 border-b border-slate-800"><th className="th">Experiment</th><th className="th">Lead</th><th className="th">Dates</th><th className="th">Status</th><th className="th">Data</th><th className="th">Actions</th></tr></thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-12 text-slate-400">No experiments found.</td></tr>
+              ) : filtered.map(e => (
+                <tr key={e.id} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="td"><p className="font-medium text-white">{e.title}</p><p className="text-xs text-slate-500 mt-0.5">{e.category || 'Uncategorised'}</p></td>
+                  <td className="td text-slate-400">{e.lead_researcher || '—'}</td>
+                  <td className="td whitespace-nowrap">{e.start_date}{e.end_date ? ` → ${e.end_date}` : ' → present'}</td>
+                  <td className="td"><StatusBadge status={e.status} /></td>
+                  <td className="td">{e.attachment_url ? <a href={e.attachment_url} target="_blank" rel="noreferrer" className="text-orange-300 hover:underline text-xs">Open file</a> : <span className="text-slate-600 text-xs">None</span>}</td>
+                  <td className="td"><div className="flex gap-2"><button onClick={() => onEdit(e)} className="text-orange-300 hover:text-orange-200 text-xs px-3 py-1.5 rounded border border-orange-500/25 hover:bg-orange-500/10">Edit</button><button onClick={() => onDelete(e.id, e.title)} className="text-slate-500 hover:text-red-300 text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-red-400/10">Delete</button></div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-4 text-xs text-slate-500">{experiments.length} total experiment record{experiments.length === 1 ? '' : 's'} · {Object.keys(equipmentById).length} equipment items available for linking</div>
     </div>
   )
 }

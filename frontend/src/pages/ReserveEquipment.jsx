@@ -109,9 +109,9 @@ export default function ReserveEquipment() {
   if (success) {
     return (
       <div className="max-w-lg mx-auto">
-        <div className="card p-10 text-center border-emerald-500/30">
-          <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="card p-10 text-center border-blue-500/20">
+          <div className="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -152,7 +152,7 @@ export default function ReserveEquipment() {
 
         {equipment.status !== 'available' ? (
           <div className="text-center py-6">
-            <p className="text-amber-400 font-medium text-sm">
+            <p className="text-blue-400 font-medium text-sm">
               This equipment is currently not available for reservation.
             </p>
             <button
@@ -171,7 +171,7 @@ export default function ReserveEquipment() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label htmlFor="reserve-start-time" className="form-label">
-                  Start Date &amp; Time <span className="text-red-400">*</span>
+                  Start Date &amp; Time <span className="text-slate-500">*</span>
                 </label>
                 <input
                   id="reserve-start-time"
@@ -186,7 +186,7 @@ export default function ReserveEquipment() {
 
               <div>
                 <label htmlFor="reserve-end-time" className="form-label">
-                  End Date &amp; Time <span className="text-red-400">*</span>
+                  End Date &amp; Time <span className="text-slate-500">*</span>
                 </label>
                 <input
                   id="reserve-end-time"

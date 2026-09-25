@@ -174,7 +174,7 @@ function ReservationRow({ r, onCancel, cancellingId }) {
           id={`cancel-reservation-${r.id}`}
           onClick={() => onCancel(r.id)}
           disabled={cancellingId === r.id}
-          className="shrink-0 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="shrink-0 bg-slate-800 hover:bg-slate-800 border border-slate-700 text-slate-500 text-xs font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {cancellingId === r.id ? 'Cancelling…' : 'Cancel'}
         </button>

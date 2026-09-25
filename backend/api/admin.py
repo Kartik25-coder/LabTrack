@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Equipment, Reservation
+from .models import CustomUser, Equipment, Reservation, Experiment
 
 
 @admin.register(CustomUser)
@@ -44,6 +44,23 @@ class ReservationAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ('Reservation', {'fields': ['user', 'equipment', 'start_time', 'end_time', 'status', 'notes']}),
+        ('Timestamps', {'fields': ['created_at', 'updated_at'], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Experiment)
+class ExperimentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'category', 'lead_researcher', 'status', 'start_date', 'end_date']
+    list_filter = ['status', 'category']
+    search_fields = ['title', 'category', 'description', 'lead_researcher', 'outcome']
+    list_editable = ['status']
+    ordering = ['-start_date']
+
+    fieldsets = [
+        (None, {'fields': ['title', 'category', 'description', 'lead_researcher', 'outcome']}),
+        ('Timeline & Status', {'fields': ['status', 'start_date', 'end_date']}),
+        ('Equipment & Research Data', {'fields': ['equipment_used', 'attachment']}),
         ('Timestamps', {'fields': ['created_at', 'updated_at'], 'classes': ['collapse']}),
     ]
     readonly_fields = ['created_at', 'updated_at']

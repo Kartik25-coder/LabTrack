@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
-from .models import CustomUser, Equipment, Reservation
+from .models import CustomUser, Equipment, Reservation, Experiment
 
 
 # ─────────────────────────────────────────────
@@ -41,6 +41,75 @@ class EquipmentSerializer(serializers.ModelSerializer):
         model = Equipment
         fields = ['id', 'name', 'category', 'description', 'status', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+
+# ─────────────────────────────────────────────
+#  Experiment Serializer
+# ─────────────────────────────────────────────
+
+class ExperimentSerializer(serializers.ModelSerializer):
+    equipment_used = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Equipment.objects.all(),
+        required=False,
+    )
+    attachment_url = serializers.SerializerMethodField(read_only=True)
+    attachment_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Experiment
+        fields = [
+            'id', 'title', 'category', 'description', 'lead_researcher',
+            'status', 'start_date', 'end_date', 'outcome', 'equipment_used',
+            'attachment', 'attachment_url', 'attachment_name',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = [
+            'created_at', 'updated_at', 'attachment_url', 'attachment_name',
+        ]
+        extra_kwargs = {
+            'attachment': {
+                'write_only': True,
+                'required': False,
+                'allow_null': True,
+            },
+        }
+
+    def get_attachment_url(self, obj):
+        if not obj.attachment:
+            return None
+        request = self.context.get('request')
+        url = obj.attachment.url
+        return request.build_absolute_uri(url) if request else url
+
+    def get_attachment_name(self, obj):
+        if not obj.attachment:
+            return None
+        return obj.attachment.name.rsplit('/', 1)[-1]
+
+    def validate_attachment(self, value):
+        if value is None:
+            return value
+        allowed = {'.pdf', '.txt'}
+        name = value.name.lower()
+        if not any(name.endswith(ext) for ext in allowed):
+            raise serializers.ValidationError('Only PDF and TXT files are allowed.')
+        if value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError('Attachment must be 10 MB or smaller.')
+        return value
+
+    def validate(self, data):
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        status_value = data.get('status', getattr(self.instance, 'status', 'ongoing'))
+
+        if start_date and end_date and end_date < start_date:
+            raise serializers.ValidationError({'end_date': 'End date cannot be before the start date.'})
+
+        if status_value == 'completed' and not end_date:
+            raise serializers.ValidationError({'end_date': 'Completed experiments should have an end date.'})
+
+        return data
 
 
 # ─────────────────────────────────────────────

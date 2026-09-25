@@ -201,3 +201,34 @@ LabTech/
 | `Access denied for user 'root'@'localhost'` | Check MySQL credentials in `settings.py` |
 | Frontend shows CORS error | Make sure Django server is running on port 8000 and Vite proxy is configured |
 | `python manage.py migrate` fails | Verify the `labtrack_db` database exists in MySQL |
+
+## LabTrack V3 — Experiment Registry
+
+V3 adds a complete experiment workflow while preserving the existing authentication, equipment, and reservation behavior.
+
+### Experiment capabilities
+- Any authenticated lab user can register a new experiment.
+- Experiment cards expand to show the full description, outcome/findings, linked equipment, timeline, record ID, and attached research file.
+- PDF and TXT experiment files can be uploaded (maximum 10 MB per file).
+- Equipment can be linked to an experiment from the available equipment catalogue.
+- Administrators have full experiment authority from the Admin Dashboard: create, edit, and delete.
+- Existing Django admin experiment management includes the new fields as well.
+
+### V3 backend setup
+After replacing the project with V3, run the new migration before starting the backend:
+
+```bash
+cd backend
+python manage.py migrate
+python manage.py runserver
+```
+
+Uploaded experiment files are stored under `backend/media/experiment_files/` during development.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```

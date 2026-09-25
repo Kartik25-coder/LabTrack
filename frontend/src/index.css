@@ -2,75 +2,432 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --paper: #f4f4f1;
+  --surface: #ffffff;
+  --surface-soft: #ecece8;
+  --surface-muted: #e5e5e1;
+  --ink: #171717;
+  --ink-soft: #4b4b48;
+  --ink-muted: #777773;
+  --line: #d5d5d0;
+  --line-strong: #b8b8b1;
+  --accent: #f26b21;
+  --accent-dark: #c94f0d;
+  --accent-soft: rgba(242, 107, 33, 0.10);
+  --accent-line: rgba(242, 107, 33, 0.30);
+  --danger: #a33b2f;
+  --shadow: 0 12px 32px rgba(23, 23, 23, 0.06);
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: var(--paper);
   }
 
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen;
+    @apply min-h-screen;
+    margin: 0;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(rgba(23, 23, 23, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 23, 23, 0.045) 1px, transparent 1px),
+      radial-gradient(circle at 86% 8%, rgba(242, 107, 33, 0.08), transparent 23rem);
+    background-size: 32px 32px, 32px 32px, auto;
+    background-attachment: fixed;
   }
 
-  /* Datetime-local input dark mode fix */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    background:
+      linear-gradient(135deg, transparent 0 49.7%, rgba(23,23,23,.035) 49.8% 50.2%, transparent 50.3%),
+      linear-gradient(45deg, transparent 0 49.7%, rgba(23,23,23,.025) 49.8% 50.2%, transparent 50.3%);
+    background-size: 160px 160px;
+    z-index: -1;
+  }
+
+  ::selection {
+    background: rgba(242, 107, 33, 0.22);
+    color: var(--ink);
+  }
+
   input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8);
     cursor: pointer;
+    opacity: .65;
+  }
+
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
-  /* Reusable card component */
   .card {
-    @apply bg-slate-900 border border-slate-800 rounded-xl;
+    @apply rounded-xl;
+    position: relative;
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
   }
 
-  /* Primary button */
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 18px;
+    width: 34px;
+    height: 3px;
+    background: var(--accent);
+    opacity: .85;
+  }
+
+  .card:hover {
+    border-color: #bdbdb7;
+    box-shadow: 0 16px 36px rgba(23, 23, 23, 0.08);
+  }
+
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed
-           text-white font-semibold py-2.5 px-5 rounded-lg transition-colors
-           flex items-center justify-center gap-2;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    padding: .68rem 1.15rem;
+    border-radius: .55rem;
+    transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    box-shadow: 0 6px 16px rgba(242, 107, 33, .18);
   }
 
-  /* Secondary / ghost button */
+  .btn-primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(242, 107, 33, .24);
+  }
+
+  .btn-primary:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
   .btn-ghost {
-    @apply text-slate-400 hover:text-white hover:bg-slate-800
-           text-sm px-3 py-1.5 rounded-md transition-colors;
+    color: var(--ink-soft);
+    font-size: .875rem;
+    padding: .42rem .7rem;
+    border-radius: .45rem;
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+    border: 1px solid transparent;
   }
 
-  /* Form input */
+  .btn-ghost:hover {
+    color: var(--ink);
+    background: var(--surface-soft);
+    border-color: var(--line);
+  }
+
   .form-input {
-    @apply w-full bg-slate-800 border border-slate-700 rounded-lg
-           px-4 py-2.5 text-white placeholder-slate-500
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-           transition text-sm;
+    width: 100%;
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--line);
+    border-radius: .5rem;
+    padding: .68rem .85rem;
+    color: var(--ink);
+    font-size: .875rem;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
   }
 
-  /* Form label */
+  .form-input::placeholder {
+    color: #9a9a95;
+  }
+
+  .form-input:hover {
+    border-color: var(--line-strong);
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    background: #fff;
+  }
+
   .form-label {
-    @apply block text-sm font-medium text-slate-300 mb-1.5;
+    display: block;
+    color: var(--ink-soft);
+    font-size: .72rem;
+    line-height: 1.25;
+    font-weight: 700;
+    margin-bottom: .45rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
   }
 
-  /* Error banner */
   .error-banner {
-    @apply bg-red-500/10 border border-red-500/30 text-red-400
-           rounded-lg px-4 py-3 text-sm;
+    background: rgba(163, 59, 47, .07);
+    border: 1px solid rgba(163, 59, 47, .24);
+    color: var(--danger);
+    border-radius: .55rem;
+    padding: .7rem .85rem;
+    font-size: .875rem;
   }
 
-  /* Table header cell */
   .th {
-    @apply px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide;
+    padding: .72rem 1.1rem;
+    text-align: left;
+    color: #686864;
+    font-size: .67rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .10em;
+    background: #ededE9;
+    border-bottom: 1px solid var(--line);
   }
 
-  /* Table data cell */
   .td {
-    @apply px-5 py-4 text-sm text-slate-300;
+    padding: .9rem 1.1rem;
+    color: var(--ink-soft);
+    font-size: .875rem;
+    border-bottom: 1px solid #e5e5e1;
   }
+
+
+
+  .lab-navbar {
+    background: rgba(250,250,247,.92);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(23,23,23,.02);
+  }
+
+  .lab-brand {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+  }
+
+  .lab-brand-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    color: #fff;
+    background: var(--ink);
+    border-radius: .55rem;
+  }
+
+  .lab-brand-icon::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255,255,255,.24);
+    border-radius: .32rem;
+  }
+
+  .lab-brand-name {
+    display: block;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.02em;
+  }
+
+  .lab-brand-meta {
+    display: block;
+    margin-top: .27rem;
+    color: var(--ink-muted);
+    font: 600 .52rem/1 "IBM Plex Mono", Consolas, monospace;
+    letter-spacing: .12em;
+  }
+
+  .lab-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .52rem .68rem;
+    border: 1px solid transparent;
+    border-radius: .45rem;
+    color: var(--ink-soft);
+    font-size: .78rem;
+    font-weight: 700;
+    transition: all .18s ease;
+  }
+
+  .lab-nav-link:hover {
+    color: var(--ink);
+    background: rgba(23,23,23,.035);
+    border-color: var(--line);
+  }
+
+  .lab-nav-link.is-active {
+    color: var(--ink);
+    background: #fff;
+    border-color: var(--line);
+    box-shadow: 0 3px 12px rgba(23,23,23,.05);
+  }
+
+  .lab-nav-link.is-active .lab-nav-mark {
+    background: var(--accent);
+  }
+
+  .lab-nav-mark {
+    width: .34rem;
+    height: .34rem;
+    background: #aaa;
+    border-radius: 1px;
+    transform: rotate(45deg);
+  }
+
+  .lab-user-chip {
+    padding: .32rem .65rem .32rem .35rem;
+    border: 1px solid var(--line);
+    border-radius: .55rem;
+    background: rgba(255,255,255,.76);
+  }
+
+  .lab-avatar {
+    width: 1.8rem;
+    height: 1.8rem;
+    display: grid;
+    place-items: center;
+    border-radius: .38rem;
+    background: var(--ink);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 800;
+  }
+
+  .lab-user-role {
+    color: var(--ink-muted);
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .lab-nav-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.1rem;
+    padding: 0 .85rem;
+    border-radius: .45rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 800;
+    transition: background .18s ease, transform .18s ease;
+  }
+
+  .lab-nav-cta:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+  }
+
+  .lab-mobile-menu {
+    border-top: 1px solid var(--line);
+    padding: .55rem 0 .8rem;
+  }
+
+  .lab-mobile-link {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .65rem .35rem;
+    color: var(--ink-soft);
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .lab-mobile-link:hover {
+    color: var(--ink);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .28rem .55rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #f4f4f1;
+    color: #3f3f3b;
+    font-size: .68rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: .035em;
+    white-space: nowrap;
+  }
+
+  .status-dot {
+    width: .36rem;
+    height: .36rem;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+
+  .status-dot-accent {
+    background: var(--accent);
+    box-shadow: 0 0 0 2px rgba(242,107,33,.10);
+  }
+
+  .status-dot-dark {
+    background: #555550;
+  }
+
+  .lab-table tbody tr {
+    transition: background .15s ease;
+  }
+
+  .lab-table tbody tr:hover {
+    background: rgba(23,23,23,.025);
+  }
+
+  /* Shared monochrome / orange visual language for legacy utility classes. */
+  .bg-slate-950 { background-color: transparent !important; }
+  .bg-slate-900 { background-color: rgba(255,255,255,.94) !important; }
+  .bg-slate-800 { background-color: #ededE9 !important; }
+  .bg-slate-700 { background-color: #deded9 !important; }
+  .border-slate-800 { border-color: var(--line) !important; }
+  .border-slate-700 { border-color: var(--line-strong) !important; }
+  .border-slate-600 { border-color: #9f9f99 !important; }
+
+  .text-white { color: var(--ink) !important; }
+  .text-slate-100 { color: var(--ink) !important; }
+  .text-slate-200 { color: #30302d !important; }
+  .text-slate-300 { color: #41413e !important; }
+  .text-slate-400 { color: var(--ink-soft) !important; }
+  .text-slate-500 { color: var(--ink-muted) !important; }
+  .text-slate-600 { color: #888883 !important; }
+
+  .bg-blue-600, .bg-brand-600 { background-color: var(--accent) !important; }
+  .bg-blue-700, .bg-brand-700 { background-color: var(--accent-dark) !important; }
+  .bg-blue-500\/10, .bg-blue-500\/20, .bg-blue-600\/20 { background-color: var(--accent-soft) !important; }
+  .text-blue-300, .text-blue-400 { color: var(--accent-dark) !important; }
+  .border-blue-500\/20, .border-blue-400\/25 { border-color: var(--accent-line) !important; }
+
+  .hover\:bg-blue-700:hover { background-color: var(--accent-dark) !important; }
+  .hover\:text-blue-300:hover, .hover\:text-blue-400:hover { color: var(--accent-dark) !important; }
+  .focus\:ring-blue-500:focus { --tw-ring-color: rgba(242,107,33,.35) !important; }
+
+  .shadow-blue-900\/40 { --tw-shadow-color: rgba(242,107,33,.18) !important; }
 }
 
 @layer utilities {
@@ -79,5 +436,18 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .lab-mono {
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: .03em;
+  }
+
+  .lab-kicker {
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--ink-muted);
   }
 }
